@@ -15,26 +15,27 @@ module.exports = [
   },
   js.configs.recommended,
   {
-    files: ['app.js'],
-    languageOptions: {
-      ecmaVersion: 2018,
-      sourceType: 'commonjs',
-      globals: {
-        ...globals.node
-      }
-    },
-    rules: {
-      'indent': ['error', 2],
-      'linebreak-style': ['error', 'unix'],
-      'quotes': ['error', 'single'],
-      'semi': ['error', 'never'],
-      'eqeqeq': 'error',
-      'no-trailing-spaces': 'error',
-      'object-curly-spacing': ['error', 'always'],
-      'arrow-spacing': ['error', { 'before': true, 'after': true }],
-      'no-console': 0
+  files: ['app.js', 'jest.setup.js'],
+  languageOptions: {
+    ecmaVersion: 2018,
+    sourceType: 'commonjs',
+    globals: {
+      ...globals.node,
+      ...globals.jest
     }
   },
+  rules: {
+    'indent': ['error', 2],
+    'linebreak-style': ['error', 'unix'],
+    'quotes': ['error', 'single'],
+    'semi': ['error', 'never'],
+    'eqeqeq': 'error',
+    'no-trailing-spaces': 'error',
+    'object-curly-spacing': ['error', 'always'],
+    'arrow-spacing': ['error', { 'before': true, 'after': true }],
+    'no-console': 0
+  }
+},
   {
     files: ['src/**/*.{js,jsx}', 'test/**/*.{js,jsx}'],
     plugins: {
