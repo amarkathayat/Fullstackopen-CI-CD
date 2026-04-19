@@ -47,6 +47,9 @@ module.exports = [
       globals: {
         ...globals.node
       }
+    },
+    rules: {
+      'no-console': 0
     }
   },
 
@@ -85,7 +88,7 @@ module.exports = [
       'no-trailing-spaces': 'error',
       'object-curly-spacing': ['error', 'always'],
       'arrow-spacing': ['error', { before: true, after: true }],
-      'no-console': 'error',
+      'no-console': 0,
       'react/prop-types': 0
     }
   }
