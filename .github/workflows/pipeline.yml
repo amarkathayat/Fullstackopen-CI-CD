@@ -9,14 +9,59 @@ on:
     types: [opened, synchronize]
 
 jobs:
-  simple_deployment_pipeline:
+  lint:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
 
       - uses: actions/setup-node@v6
         with:
-          node-version: '24'
+          node-version: "24"
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Check style
+        run: npm run eslint
+
+  unit_tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run unit tests
+        run: npm test
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build project
+        run: npm run build
+
+  e2e_tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "24"
 
       - name: Install dependencies
         run: npm install
@@ -24,24 +69,19 @@ jobs:
       - name: Install Playwright browsers
         run: npx playwright install --with-deps
 
-      - name: Check style
-        run: npm run eslint
-
-      - name: Run unit tests
-        run: npm test
-
-      - name: Build project
-        run: npm run build
-
       - name: Run end-to-end tests
         run: npm run test:e2e
 
+  deploy:
+    needs: [lint, unit_tests, build, e2e_tests]
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'push' && !contains(join(github.event.commits.*.message, ' '), '#skip') }}
+    steps:
       - name: Trigger Render deployment
-        if: ${{ github.event_name == 'push' && !contains(join(github.event.commits.*.message, ' '), '#skip') }}
         run: curl ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
 
   tag_release:
-    needs: [simple_deployment_pipeline]
+    needs: [lint, unit_tests, build, e2e_tests]
     runs-on: ubuntu-latest
     if: ${{ github.event_name == 'push' && !contains(join(github.event.commits.*.message, ' '), '#skip') }}
     steps:
@@ -54,9 +94,9 @@ jobs:
           DEFAULT_BUMP: patch
 
   notify_success:
-    needs: [simple_deployment_pipeline, tag_release]
+    needs: [deploy, tag_release]
     runs-on: ubuntu-latest
-    if: ${{ github.event_name == 'push' && !contains(join(github.event.commits.*.message, ' '), '#skip') && needs.simple_deployment_pipeline.result == 'success' && needs.tag_release.result == 'success' }}
+    if: ${{ github.event_name == 'push' && needs.deploy.result == 'success' && needs.tag_release.result == 'success' }}
     steps:
       - name: Send success notification to Discord
         uses: Ilshidur/action-discord@master
@@ -65,9 +105,9 @@ jobs:
           DISCORD_MESSAGE: "Deployment successful for ${{ github.repository }}. Commit: ${{ github.sha }}"
 
   notify_failure:
-    needs: [simple_deployment_pipeline, tag_release]
+    needs: [lint, unit_tests, build, e2e_tests, deploy, tag_release]
     runs-on: ubuntu-latest
-    if: ${{ always() && (needs.simple_deployment_pipeline.result == 'failure' || needs.tag_release.result == 'failure') }}
+    if: ${{ always() && (needs.lint.result == 'failure' || needs.unit_tests.result == 'failure' || needs.build.result == 'failure' || needs.e2e_tests.result == 'failure' || needs.deploy.result == 'failure' || needs.tag_release.result == 'failure') }}
     steps:
       - name: Send failure notification to Discord
         uses: Ilshidur/action-discord@master
