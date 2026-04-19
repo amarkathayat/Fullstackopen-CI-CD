@@ -13,29 +13,43 @@ module.exports = [
       'dist/**'
     ]
   },
+
   js.configs.recommended,
+
   {
-  files: ['app.js', 'jest.setup.js'],
-  languageOptions: {
-    ecmaVersion: 2018,
-    sourceType: 'commonjs',
-    globals: {
-      ...globals.node,
-      ...globals.jest
+    files: ['app.js', 'jest.setup.js'],
+    languageOptions: {
+      ecmaVersion: 2018,
+      sourceType: 'commonjs',
+      globals: {
+        ...globals.node,
+        ...globals.jest
+      }
+    },
+    rules: {
+      'indent': ['error', 2],
+      'linebreak-style': ['error', 'unix'],
+      'quotes': ['error', 'single'],
+      'semi': ['error', 'never'],
+      'eqeqeq': 'error',
+      'no-trailing-spaces': 'error',
+      'object-curly-spacing': ['error', 'always'],
+      'arrow-spacing': ['error', { before: true, after: true }],
+      'no-console': 0
     }
   },
-  rules: {
-    'indent': ['error', 2],
-    'linebreak-style': ['error', 'unix'],
-    'quotes': ['error', 'single'],
-    'semi': ['error', 'never'],
-    'eqeqeq': 'error',
-    'no-trailing-spaces': 'error',
-    'object-curly-spacing': ['error', 'always'],
-    'arrow-spacing': ['error', { 'before': true, 'after': true }],
-    'no-console': 0
-  }
-},
+
+  {
+    files: ['playwright.config.js', 'e2e-tests/**/*.js'],
+    languageOptions: {
+      ecmaVersion: 2018,
+      sourceType: 'commonjs',
+      globals: {
+        ...globals.node
+      }
+    }
+  },
+
   {
     files: ['src/**/*.{js,jsx}', 'test/**/*.{js,jsx}'],
     plugins: {
@@ -70,7 +84,7 @@ module.exports = [
       'eqeqeq': 'error',
       'no-trailing-spaces': 'error',
       'object-curly-spacing': ['error', 'always'],
-      'arrow-spacing': ['error', { 'before': true, 'after': true }],
+      'arrow-spacing': ['error', { before: true, after: true }],
       'no-console': 'error',
       'react/prop-types': 0
     }
