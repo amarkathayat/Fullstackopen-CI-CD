@@ -52,3 +52,29 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DEFAULT_BUMP: patch
+
+  notify_success:
+    needs: [simple_deployment_pipeline, tag_release]
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'push' && !contains(join(github.event.commits.*.message, ' '), '#skip') && needs.simple_deployment_pipeline.result == 'success' && needs.tag_release.result == 'success' }}
+    steps:
+      - name: Send success notification to Discord
+        uses: Ilshidur/action-discord@master
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+          DISCORD_USERNAME: GitHub Actions
+          DISCORD_AVATAR: https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png
+          DISCORD_MESSAGE: "✅ Deployment succeeded in `${{ github.repository }}`.\nBranch: `${{ github.ref_name }}`\nCommit: `${{ github.sha }}`\nAuthor: `${{ github.actor }}`\nMessage: `${{ github.event.head_commit.message }}`"
+
+  notify_failure:
+    needs: [simple_deployment_pipeline, tag_release]
+    runs-on: ubuntu-latest
+    if: ${{ always() && (needs.simple_deployment_pipeline.result == 'failure' || needs.tag_release.result == 'failure') }}
+    steps:
+      - name: Send failure notification to Discord
+        uses: Ilshidur/action-discord@master
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+          DISCORD_USERNAME: GitHub Actions
+          DISCORD_AVATAR: https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png
+          DISCORD_MESSAGE: "❌ Workflow failed in `${{ github.repository }}`.\nEvent: `${{ github.event_name }}`\nBranch: `${{ github.ref_name }}`\nCommit: `${{ github.sha }}`\nAuthor: `${{ github.actor }}`\nMessage: `${{ github.event.head_commit.message || github.event.pull_request.title }}`\nSee details: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
