@@ -62,7 +62,7 @@ jobs:
         run: |
           curl -X POST "${{ secrets.DISCORD_WEBHOOK }}" \
           -H "Content-Type: application/json" \
-          -d "{\"content\":\"✅ Deployment succeeded\nRepository: ${{ github.repository }}\nBranch: ${{ github.ref_name }}\nCommit: ${{ github.sha }}\nAuthor: ${{ github.actor }}\nMessage: ${{ github.event.head_commit.message }}\"}"
+          -d "{\"content\":\"✅ THIS IS AMAR'S PROJECT\nRepository: ${{ github.repository }}\nBranch: ${{ github.ref_name }}\nCommit: ${{ github.sha }}\nAuthor: ${{ github.actor }}\nMessage: ${{ github.event.head_commit.message }}\"}"
 
   notify_failure:
     needs: [simple_deployment_pipeline, tag_release]
@@ -73,4 +73,4 @@ jobs:
         run: |
           curl -X POST "${{ secrets.DISCORD_WEBHOOK }}" \
           -H "Content-Type: application/json" \
-          -d "{\"content\":\"❌ Workflow failed\nRepository: ${{ github.repository }}\nEvent: ${{ github.event_name }}\nBranch: ${{ github.ref_name }}\nCommit: ${{ github.sha }}\nAuthor: ${{ github.actor }}\nMessage: ${{ github.event.head_commit.message || github.event.pull_request.title }}\nDetails: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}\"}"
+          -d "{\"content\":\"❌ THIS IS AMAR'S PROJECT - WORKFLOW FAILED\nRepository: ${{ github.repository }}\nEvent: ${{ github.event_name }}\nBranch: ${{ github.ref_name }}\nCommit: ${{ github.sha }}\nAuthor: ${{ github.actor }}\nMessage: ${{ github.event.head_commit.message || github.event.pull_request.title }}\nDetails: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}\"}"
