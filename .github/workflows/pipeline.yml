@@ -62,14 +62,7 @@ jobs:
         uses: Ilshidur/action-discord@master
         env:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
-          DISCORD_USERNAME: Amar Bot
-          DISCORD_MESSAGE: |
-            ✅ THIS IS AMAR'S PROJECT
-            Repository: ${{ github.repository }}
-            Branch: ${{ github.ref_name }}
-            Commit: ${{ github.sha }}
-            Author: ${{ github.actor }}
-            Message: ${{ github.event.head_commit.message }}
+          DISCORD_MESSAGE: "Deployment successful for ${{ github.repository }}. Commit: ${{ github.sha }}"
 
   notify_failure:
     needs: [simple_deployment_pipeline, tag_release]
@@ -80,13 +73,4 @@ jobs:
         uses: Ilshidur/action-discord@master
         env:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
-          DISCORD_USERNAME: Amar Bot
-          DISCORD_MESSAGE: |
-            ❌ THIS IS AMAR'S PROJECT - WORKFLOW FAILED
-            Repository: ${{ github.repository }}
-            Event: ${{ github.event_name }}
-            Branch: ${{ github.ref_name }}
-            Commit: ${{ github.sha }}
-            Author: ${{ github.actor }}
-            Message: ${{ github.event.head_commit.message || github.event.pull_request.title }}
-            Details: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          DISCORD_MESSAGE: "Build failed for ${{ github.repository }}. Commit: ${{ github.sha }}. See details: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
