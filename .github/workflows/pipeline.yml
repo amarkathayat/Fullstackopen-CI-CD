@@ -59,18 +59,10 @@ jobs:
     if: ${{ github.event_name == 'push' && !contains(join(github.event.commits.*.message, ' '), '#skip') && needs.simple_deployment_pipeline.result == 'success' && needs.tag_release.result == 'success' }}
     steps:
       - name: Send success notification to Discord
-        uses: Ilshidur/action-discord@master
-        env:
-          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
-          DISCORD_USERNAME: GitHub Actions
-          DISCORD_AVATAR: https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png
-          DISCORD_MESSAGE: |
-            ✅ Deployment succeeded
-            Repository: ${{ github.repository }}
-            Branch: ${{ github.ref_name }}
-            Commit: ${{ github.sha }}
-            Author: ${{ github.actor }}
-            Message: ${{ github.event.head_commit.message }}
+        run: |
+          curl -X POST "${{ secrets.DISCORD_WEBHOOK }}" \
+          -H "Content-Type: application/json" \
+          -d "{\"content\":\"✅ Deployment succeeded\nRepository: ${{ github.repository }}\nBranch: ${{ github.ref_name }}\nCommit: ${{ github.sha }}\nAuthor: ${{ github.actor }}\nMessage: ${{ github.event.head_commit.message }}\"}"
 
   notify_failure:
     needs: [simple_deployment_pipeline, tag_release]
@@ -78,17 +70,7 @@ jobs:
     if: ${{ always() && (needs.simple_deployment_pipeline.result == 'failure' || needs.tag_release.result == 'failure') }}
     steps:
       - name: Send failure notification to Discord
-        uses: Ilshidur/action-discord@master
-        env:
-          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
-          DISCORD_USERNAME: GitHub Actions
-          DISCORD_AVATAR: https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png
-          DISCORD_MESSAGE: |
-            ❌ Workflow failed
-            Repository: ${{ github.repository }}
-            Event: ${{ github.event_name }}
-            Branch: ${{ github.ref_name }}
-            Commit: ${{ github.sha }}
-            Author: ${{ github.actor }}
-            Message: ${{ github.event.head_commit.message || github.event.pull_request.title }}
-            Details: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          curl -X POST "${{ secrets.DISCORD_WEBHOOK }}" \
+          -H "Content-Type: application/json" \
+          -d "{\"content\":\"❌ Workflow failed\nRepository: ${{ github.repository }}\nEvent: ${{ github.event_name }}\nBranch: ${{ github.ref_name }}\nCommit: ${{ github.sha }}\nAuthor: ${{ github.actor }}\nMessage: ${{ github.event.head_commit.message || github.event.pull_request.title }}\nDetails: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}\"}"
