@@ -13,14 +13,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-
       - uses: actions/setup-node@v6
         with:
           node-version: "24"
-
       - name: Install dependencies
         run: npm install
-
       - name: Check style
         run: npm run eslint
 
@@ -28,14 +25,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-
       - uses: actions/setup-node@v6
         with:
           node-version: "24"
-
       - name: Install dependencies
         run: npm install
-
       - name: Run unit tests
         run: npm test
 
@@ -43,14 +37,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-
       - uses: actions/setup-node@v6
         with:
           node-version: "24"
-
       - name: Install dependencies
         run: npm install
-
       - name: Build project
         run: npm run build
 
@@ -58,17 +49,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-
       - uses: actions/setup-node@v6
         with:
           node-version: "24"
-
       - name: Install dependencies
         run: npm install
-
       - name: Install Playwright browsers
         run: npx playwright install --with-deps
-
       - name: Run end-to-end tests
         run: npm run test:e2e
 
@@ -86,7 +73,6 @@ jobs:
     if: ${{ github.event_name == 'push' && !contains(join(github.event.commits.*.message, ' '), '#skip') }}
     steps:
       - uses: actions/checkout@v6
-
       - name: Bump version and push tag
         uses: anothrNick/github-tag-action@1.75.0
         env:
@@ -99,16 +85,19 @@ jobs:
     if: ${{ github.event_name == 'push' && needs.deploy.result == 'success' && needs.tag_release.result == 'success' }}
     steps:
       - name: Send success notification
-        uses: tsickert/discord-webhook@v5
+        uses: sarisia/actions-status-discord@v1
+        if: always()
         with:
-          webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
-          content: |
-            ✅ Deployment Successful!
+          webhook: ${{ secrets.DISCORD_WEBHOOK }}
+          status: success
+          title: "Deployment Successful!"
+          description: |
             Repository: ${{ github.repository }}
             Branch: ${{ github.ref_name }}
             Commit: ${{ github.sha }}
             Message: ${{ github.event.head_commit.message }}
             Author: ${{ github.actor }}
+          color: 0x00ff00
 
   notify_failure:
     needs: [lint, unit_tests, build, e2e_tests, deploy, tag_release]
@@ -116,14 +105,17 @@ jobs:
     if: ${{ always() && (needs.lint.result == 'failure' || needs.unit_tests.result == 'failure' || needs.build.result == 'failure' || needs.e2e_tests.result == 'failure' || needs.deploy.result == 'failure' || needs.tag_release.result == 'failure') }}
     steps:
       - name: Send failure notification
-        uses: tsickert/discord-webhook@v5
+        uses: sarisia/actions-status-discord@v1
+        if: always()
         with:
-          webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
-          content: |
-            ❌ Build Failed!
+          webhook: ${{ secrets.DISCORD_WEBHOOK }}
+          status: failure
+          title: "Build Failed!"
+          description: |
             Repository: ${{ github.repository }}
             Branch: ${{ github.ref_name }}
             Commit: ${{ github.sha }}
             Message: ${{ github.event.head_commit.message || github.event.pull_request.title }}
             Author: ${{ github.actor }}
-            Details: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            Workflow Run: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          color: 0xff0000
