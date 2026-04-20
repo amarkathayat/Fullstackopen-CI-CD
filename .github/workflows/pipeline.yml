@@ -96,15 +96,13 @@ jobs:
   notify_success:
     needs: [deploy, tag_release]
     runs-on: ubuntu-latest
-    if: ${{ github.event_name == 'push' && !contains(join(github.event.commits.*.message, ' '), '#skip') && needs.deploy.result == 'success' && needs.tag_release.result == 'success' }}
+    if: ${{ github.event_name == 'push' && needs.deploy.result == 'success' && needs.tag_release.result == 'success' }}
     steps:
-      - name: Send success notification to Discord
-        uses: Ilshidur/action-discord@master
-        env:
-          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
-          DISCORD_USERNAME: Fullstack CI/CD
-          DISCORD_AVATAR: https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png
-          DISCORD_MESSAGE: |
+      - name: Send success notification
+        uses: tsickert/discord-webhook@v5
+        with:
+          webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
+          content: |
             ✅ Deployment Successful!
             Repository: ${{ github.repository }}
             Branch: ${{ github.ref_name }}
@@ -117,17 +115,15 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ always() && (needs.lint.result == 'failure' || needs.unit_tests.result == 'failure' || needs.build.result == 'failure' || needs.e2e_tests.result == 'failure' || needs.deploy.result == 'failure' || needs.tag_release.result == 'failure') }}
     steps:
-      - name: Send failure notification to Discord
-        uses: Ilshidur/action-discord@master
-        env:
-          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
-          DISCORD_USERNAME: Fullstack CI/CD
-          DISCORD_AVATAR: https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png
-          DISCORD_MESSAGE: |
+      - name: Send failure notification
+        uses: tsickert/discord-webhook@v5
+        with:
+          webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
+          content: |
             ❌ Build Failed!
             Repository: ${{ github.repository }}
             Branch: ${{ github.ref_name }}
             Commit: ${{ github.sha }}
             Message: ${{ github.event.head_commit.message || github.event.pull_request.title }}
             Author: ${{ github.actor }}
-            Workflow Run: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            Details: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
