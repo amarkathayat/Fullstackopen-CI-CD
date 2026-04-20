@@ -96,13 +96,21 @@ jobs:
   notify_success:
     needs: [deploy, tag_release]
     runs-on: ubuntu-latest
-    if: ${{ github.event_name == 'push' && needs.deploy.result == 'success' && needs.tag_release.result == 'success' }}
+    if: ${{ github.event_name == 'push' && !contains(join(github.event.commits.*.message, ' '), '#skip') && needs.deploy.result == 'success' && needs.tag_release.result == 'success' }}
     steps:
       - name: Send success notification to Discord
         uses: Ilshidur/action-discord@master
         env:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
-          DISCORD_MESSAGE: "Deployment successful for ${{ github.repository }}. Commit: ${{ github.sha }}"
+          DISCORD_USERNAME: Fullstack CI/CD
+          DISCORD_AVATAR: https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png
+          DISCORD_MESSAGE: |
+            ✅ Deployment Successful!
+            Repository: ${{ github.repository }}
+            Branch: ${{ github.ref_name }}
+            Commit: ${{ github.sha }}
+            Message: ${{ github.event.head_commit.message }}
+            Author: ${{ github.actor }}
 
   notify_failure:
     needs: [lint, unit_tests, build, e2e_tests, deploy, tag_release]
@@ -113,4 +121,13 @@ jobs:
         uses: Ilshidur/action-discord@master
         env:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
-          DISCORD_MESSAGE: "Build failed for ${{ github.repository }}. Commit: ${{ github.sha }}. See details: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          DISCORD_USERNAME: Fullstack CI/CD
+          DISCORD_AVATAR: https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png
+          DISCORD_MESSAGE: |
+            ❌ Build Failed!
+            Repository: ${{ github.repository }}
+            Branch: ${{ github.ref_name }}
+            Commit: ${{ github.sha }}
+            Message: ${{ github.event.head_commit.message || github.event.pull_request.title }}
+            Author: ${{ github.actor }}
+            Workflow Run: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
